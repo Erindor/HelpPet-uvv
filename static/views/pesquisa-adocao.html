@@ -6,7 +6,7 @@
 <div class="panel panel-default"  ng-if="dataPesquisaAdocao.petDetalhe">
   <div class="panel-heading">{{dataPesquisaAdocao.petDetalhe.nome}}</div>
   <div class="panel-body">
-    <p>{{dataPesquisaAdocao.petDetalhe.adocao.descricao}}</p>
+    <p>{{dataPesquisaAdocao.petDetalhe.adocao.observacao}}</p>
   </div>
 </div>
 
@@ -14,14 +14,18 @@
     <thead>
         <tr>
             <th class="col-md-6">Nome do Pet</th>
-            <th class="col-md-3">Especie</th>
+            <th class="col-md-1">Especie</th>
+            <th class="col-md-2 text-right">Dono</th>
+            <th class="col-md-2">Contato Dono</th>
             <th class="col-md-1"></th>
         </tr>
     </thead>
     <tbody>
         <tr ng-repeat="pet in dataPesquisaAdocao.pets">
             <td>{{pet.nome}}</td>
-            <td>{{pet.especieNome}}</td>
+            <td>{{resolveEspeciesNome(pet.especie_id, dataMain.especies)}}</td>
+            <td class="text-right">{{pet.nome_dono}}</td>
+            <td>{{pet.email_dono}}</td>
             <td>
                 <button type="button" class="btn btn-primary" ng-click="mostraDetalhe($index)">Ver detalhes</button>
             </td>

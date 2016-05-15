@@ -1,6 +1,6 @@
-app.controller('HomeController', function($scope, $location, store, jwtHelper, petsService, petCadastroService)  {
+app.controller('HomeController', function($scope, $location, store, petsService, petCadastroService)  {
     if(!$scope.isLoged) {
-        $location.path('login');
+        $location.url('/login');
         return;
     }
     
@@ -16,29 +16,51 @@ app.controller('HomeController', function($scope, $location, store, jwtHelper, p
     };
     
     $scope.deletaPet = function(index) {
-        $scope.dataHome.pets.splice(index, 1);
-        petsService.deletaPet($scope.dataHome.pets[index].id);
+        $scope.dataMain.loading = true;
+        var deletadoId = $scope.dataHome.pets[index].id;
+        petsService.deletaPet(deletadoId).then(
+            function sucesso(respostaServidor) {
+                $scope.dataHome.pets.splice(index, 1);
+                $scope.dataMain.loading = false;
+            },
+            function erro(respostaServidor) {
+                alert("Não foi possivel deletar o PET");
+            });
     };
     
     $scope.removerAdocao = function(index) {
+        $scope.dataMain.loading = true;
         $scope.dataHome.pets[index].adocao = null;
-        petsService.atualizaPet($scope.dataHome.pets[index]);
+        petsService.atualizaPet($scope.dataHome.pets[index]).then(function(data) {
+            if(data.resposta == "sucesso") {
+                $scope.dataMain.loading = false;
+            }else{
+                alert("Erro atualizar PET");
+            }
+        });
     };
     
     $scope.removerPerdido = function(index) {
-        $scope.dataHome.pets[index].perdido = null;
-        petsService.atualizaPet($scope.dataHome.pets[index]);
+        $scope.dataMain.loading = true;
+        var pet = $scope.dataHome.pets[index];
+        pet.perdido = null;
+        petsService.atualizaPet(pet).then(function(data) {
+            if(data.resposta == "sucesso") {
+                $scope.dataHome.pets[index].perdido = null;
+                $scope.dataMain.loading = false;
+            }else{
+                alert("Erro atualizar PET");
+            }
+        });
     };
     
-    var jwt = jwtHelper.decodeToken(store.get('jwt'));
+    var respostaPets = petsService.getPetsPorDono($scope.dataMain.usuario.id);
     
-    $scope.dataHome.usuario = jwt.data.usuario;
-    
-    var respostaPets = petsService.getPetsPorDono(jwt.data.id);
-    
+    $scope.dataMain.loading = true;
     respostaPets.then(function(data) {
         if(data.resposta == "sucesso") {
             $scope.dataHome.pets = data.consultarDono;
+            $scope.dataMain.loading = false;
         }else{
             alert("Erro ao receber dados do servidor");
         }

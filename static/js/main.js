@@ -44,7 +44,7 @@ app.config(function Config($httpProvider, jwtInterceptorProvider) {
 
 app.controller("MainController", function($scope, $location, store, jwtHelper, LoginService, especieService) {
     $scope.isLoged = false;
-    $scope.dataMain = {especies: null};
+    $scope.dataMain = {especies: null, loading: false, usuario: {}};
     
     $scope.telaAtiva = function (viewLocation) { 
         return viewLocation === $location.path();
@@ -53,18 +53,23 @@ app.controller("MainController", function($scope, $location, store, jwtHelper, L
     $scope.logout = function() {
         $scope.isLoged = false;
         store.remove('jwt');
+        $scope.dataMain.usuario = {};
         $location.path('/');
     }
 
     $scope.login = function(usuario) {
+        $scope.dataMain.loading = true;
         var resposta = LoginService.login(usuario.login, usuario.senha);
             resposta.then(function(data) {
             if(data.resposta == "sucesso"){
                 $scope.isLoged = true;
                 store.set('jwt', data.jwt);
+                $scope.dataMain.usuario = jwtHelper.decodeToken(data.jwt).data;
                 $location.path('/home');
+                $scope.dataMain.loading = false;
             }else{
-                alert("Erro no login");
+                $scope.dataMain.loading = false;
+                alert("Login Invalido");
             }
         });
     };
@@ -72,14 +77,21 @@ app.controller("MainController", function($scope, $location, store, jwtHelper, L
     var jwt = store.get('jwt');
     if(store.get('jwt') == null){
         $scope.isLoged = false;
+        $scope.dataMain.usuario = {};
         $location.path('/');
     }else if(jwtHelper.isTokenExpired(jwt)) {
         $scope.isLoged = false;
+        $scope.dataMain.usuario = {};
         store.remove('jwt');
         $location.path('/login');
     }else{
+        $scope.dataMain.usuario = jwtHelper.decodeToken(jwt).data;
         $scope.isLoged = true;
     }
+    
+    
+    
+    $scope.resolveEspeciesNome = especieService.resolveEspeciesNome;
     
     especieService.getEspecies().then(function(data) {
         if(data.resposta == "sucesso") {
